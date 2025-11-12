@@ -127,12 +127,6 @@ class RoleService:
         
         # 设置数据权限范围
         await RoleCRUD(auth).set_role_data_scope_crud(role_ids=data.role_ids, data_scope=data.data_scope)
-        
-        # 设置自定义数据权限部门
-        if data.data_scope == 5 and data.dept_ids:
-            await RoleCRUD(auth).set_role_depts_crud(role_ids=data.role_ids, dept_ids=data.dept_ids)
-        else:
-            await RoleCRUD(auth).set_role_depts_crud(role_ids=data.role_ids, dept_ids=[])
 
     @classmethod
     async def set_role_available_service(cls, auth: AuthSchema, data: BatchSetAvailable) -> None:

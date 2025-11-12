@@ -13,7 +13,6 @@ from app.core.base_model import MappedBase
 from app.config.setting import settings
 from app.api.v1.module_system.user.model import UserModel, UserRolesModel
 from app.api.v1.module_system.role.model import RoleModel
-from app.api.v1.module_system.dept.model import DeptModel
 from app.api.v1.module_system.menu.model import MenuModel
 from app.api.v1.module_system.params.model import ParamsModel
 from app.api.v1.module_system.dict.model import DictTypeModel, DictDataModel
@@ -30,8 +29,7 @@ class InitializeData:
         """
         # 按照依赖关系排序：先创建基础表，再创建关联表
         self.prepare_init_models = [
-            # 基础表（项目启动初始化数据表，部门和菜单必须先创建）
-            DeptModel,
+            # 基础表（项目启动初始化数据表，菜单必须先创建）
             MenuModel,
             UserModel,
             RoleModel,
@@ -80,10 +78,9 @@ class InitializeData:
                 continue
             
             try:
-                # 特殊处理具有嵌套 children 数据的表
-                if table_name in ["system_dept", "system_menu"]:
-                    # 获取对应的模型类
-                    model_class = DeptModel if table_name == "system_dept" else MenuModel
+                # 特殊处理具有嵌套 children 数据的表（仅 menu 保持 children 结构）
+                if table_name == "system_menu":
+                    model_class = MenuModel
                     objs = self.__create_objects_with_children(data, model_class)
                 else:
                     # 表为空，直接插入全部数据

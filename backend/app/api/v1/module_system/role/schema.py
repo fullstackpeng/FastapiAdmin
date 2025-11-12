@@ -6,7 +6,6 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator, field_valida
 from app.core.base_schema import BaseSchema
 from app.core.validator import role_permission_request_validator
 from app.core.validator import DateTimeStr
-from ..dept.schema import DeptOutSchema
 from ..menu.schema import MenuOutSchema
 
 
@@ -68,13 +67,13 @@ class RolePermissionSettingSchema(BaseModel):
     data_scope: int = Field(default=1, ge=1, le=5, description='数据权限范围')
     role_ids: List[int] = Field(default_factory=list, description='角色ID列表')
     menu_ids: List[int] = Field(default_factory=list, description='菜单ID列表')
-    dept_ids: List[int] = Field(default_factory=list, description='部门ID列表')
+    # dept_ids removed
     
     @model_validator(mode='before')
     @classmethod
     def _normalize(cls, values):
         if isinstance(values, dict):
-            for k in ["role_ids", "menu_ids", "dept_ids"]:
+            for k in ["role_ids", "menu_ids"]:
                 if k in values and values[k] is not None:
                     try:
                         values[k] = list({int(x) for x in values[k]})
@@ -98,7 +97,7 @@ class RoleOutSchema(RoleCreateSchema, BaseSchema):
     model_config = ConfigDict(from_attributes=True)
     
     menus: List[MenuOutSchema] = Field(default_factory=list, description='角色菜单列表')
-    depts: List[DeptOutSchema] = Field(default_factory=list, description='角色部门列表')
+    # depts removed
 
 
 class RoleOptionsOut(RoleCreateSchema):
@@ -108,4 +107,3 @@ class RoleOptionsOut(RoleCreateSchema):
     created_at: DateTimeStr = Field(..., description="创建时间")
     updated_at: DateTimeStr = Field(..., description="更新时间")
     menus: List[MenuOutSchema] = Field(default_factory=list, description='角色菜单列表')
-    depts: List[DeptOutSchema] = Field(default_factory=list, description='角色部门列表')

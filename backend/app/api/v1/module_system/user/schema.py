@@ -112,9 +112,7 @@ class UserCreateSchema(CurrentUserUpdateSchema):
     is_superuser: bool = Field(default=False, description="是否超管")
     description: Optional[str] = Field(default=None, max_length=255, description="备注")
     
-    dept_id: Optional[int] = Field(default=None, description='部门ID')
     role_ids: Optional[List[int]] = Field(default=[], description='角色ID')
-    position_ids: Optional[List[int]] = Field(default=[], description='岗位ID')
 
     @model_validator(mode='before')
     @classmethod
@@ -131,12 +129,11 @@ class UserCreateSchema(CurrentUserUpdateSchema):
                     if isinstance(v, str):
                         values[k] = v.strip().lower() in {"true", "1", "yes", "y"}
             # 列表转 int 去重
-            for k in ["role_ids", "position_ids"]:
-                if k in values and values[k] is not None:
-                    try:
-                        values[k] = list({int(x) for x in values[k]})
-                    except Exception:
-                        pass
+            if "role_ids" in values and values["role_ids"] is not None:
+                try:
+                    values["role_ids"] = list({int(x) for x in values["role_ids"]})
+                except Exception:
+                    pass
         return values
 
     @model_validator(mode='after')
@@ -157,7 +154,6 @@ class UserOutSchema(UserUpdateSchema, BaseSchema):
     """响应"""
     model_config = ConfigDict(arbitrary_types_allowed=True, from_attributes=True)
     
-    dept_name: Optional[str] = Field(default=None, description='部门名称')
-    dept: Optional[CommonSchema] = Field(default=None, description='部门')
+    # dept removed
     roles: Optional[List[RoleOutSchema]] = Field(default=[], description='角色')
-    positions: Optional[List[CommonSchema]] = Field(default=[], description='岗位')
+    # positions removed

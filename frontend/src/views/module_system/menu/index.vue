@@ -271,7 +271,7 @@
             <el-input v-model="formData.route_path" placeholder="请输入外链完整路径" />
           </el-form-item>
 
-          <el-form-item  prop="route_name">
+          <el-form-item v-if="formData.type == MenuTypeEnum.CATALOG || formData.type == MenuTypeEnum.MENU"  prop="route_name">
             <template #label>
               <div class="flex-y-center">
                 路由名称

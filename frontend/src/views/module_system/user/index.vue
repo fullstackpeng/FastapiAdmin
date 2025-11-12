@@ -2,13 +2,8 @@
 <template>
   <div class="app-container">
     <el-row :gutter="12">
-      <!-- 部门树 -->
-      <el-col :lg="4" :xs="24">
-        <DeptTree v-model="queryFormData.dept_id" class="h-full" @node-click="handleQuery"  />
-      </el-col>
-
       <!-- 用户列表 -->
-      <el-col :lg="20" :xs="24">
+      <el-col :lg="24" :xs="24">
         <!-- 搜索区域 -->
         <div class="search-container">
           <el-form ref="queryFormRef" :model="queryFormData" :inline="true"  label-suffix=":" @submit.prevent="handleQuery" >
@@ -243,9 +238,8 @@
             <el-tag v-else-if="detailFormData.gender ==='1'" type="warning">女</el-tag>
             <el-tag v-else type="info">未知</el-tag>
           </el-descriptions-item>
-          <el-descriptions-item label="部门" :span="2">{{ detailFormData.dept ? detailFormData.dept.name : '' }}</el-descriptions-item>
           <el-descriptions-item label="角色" :span="2">{{ detailFormData.roles ? detailFormData.roles.map(item => item.name).join('、') : '' }}</el-descriptions-item>
-          <el-descriptions-item label="岗位" :span="2">{{ detailFormData.positions ? detailFormData.positions.map(item => item.name).join('、') : '' }}</el-descriptions-item>  
+          <el-descriptions-item label="角色" :span="2">{{ detailFormData.roles ? detailFormData.roles.map(item => item.name).join('、') : '' }}</el-descriptions-item>
           <el-descriptions-item label="邮箱" :span="2">{{ detailFormData.email }}</el-descriptions-item>
           <el-descriptions-item label="手机号" :span="2">{{ detailFormData.mobile }}</el-descriptions-item>
           <el-descriptions-item label="是否超管" :span="2">
@@ -292,9 +286,6 @@
             <el-input v-model="formData.email" placeholder="请输入邮箱" maxlength="50" />
           </el-form-item>
 
-          <el-form-item label="部门" prop="dept_id">
-            <el-tree-select v-model="formData.dept_id" placeholder="请选择上级部门" :data="deptOptions" :props="{ children: 'children', label: 'label', disabled: 'disabled' }" filterable check-strictly :render-after-expand="false" />
-          </el-form-item>
 
           <el-form-item label="角色" prop="role_ids">
             <el-select v-model="formData.role_ids" multiple placeholder="请选择角色">
@@ -302,11 +293,6 @@
             </el-select>
           </el-form-item>
 
-          <el-form-item label="岗位" prop="position_ids">
-            <el-select v-model="formData.position_ids" multiple placeholder="请选择岗位">
-              <el-option v-for="item in positionOptions" :key="item.value" :label="item.label" :value="item.value" :disabled="item.disabled" />
-            </el-select>
-          </el-form-item>
 
           <el-form-item label="密码" prop="password">
             <el-input v-model="formData.password" :readonly="!!formData.id" placeholder="请输入密码" type="password" show-password clearable />
@@ -370,13 +356,9 @@ import { DeviceEnum } from "@/enums/settings/device.enum";
 import { ResultEnum } from "@/enums/api/result.enum";
 
 import UserAPI, { type UserForm, type UserInfo, type UserPageQuery } from "@/api/module_system/user";
-import { formatTree } from "@/utils/common";
-import PositionAPI from "@/api/module_system/position";
-import DeptAPI from "@/api/module_system/dept";
 import RoleAPI from "@/api/module_system/role";
 import { formatToDateTime } from "@/utils/dateUtil";
 
-import DeptTree from "./components/DeptTree.vue";
 import UserTableSelect from "./components/UserTableSelect.vue";
 import { useUserStore } from "@/store";
 import ImportModal from "@/components/CURD/ImportModal.vue";
@@ -396,12 +378,8 @@ const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "450
 const selectionRows = ref<UserInfo[]>([]);
 // 选中的用户ID
 const selectIds = ref<number[]>([]);
-// 部门下拉数据源
-const deptOptions = ref<OptionType[]>();
 // 角色下拉数据源
 const roleOptions = ref<Array<{ value: number; label: string; disabled?: boolean }>>();
-// 岗位下拉数据源
-const positionOptions = ref<Array<{ value: number; label: string; disabled?: boolean }>>();
 // 导入弹窗显示状态
 const importDialogVisible = ref(false);
 // 导出弹窗显示状态
@@ -418,7 +396,6 @@ const queryFormData = reactive<UserPageQuery>({
   username: undefined,
   name: undefined,
   status: undefined,
-  dept_id: undefined,
   start_time: undefined,
   end_time: undefined,
   // 创建人
@@ -430,12 +407,8 @@ const formData = reactive<UserForm>({
   id: undefined,
   username: undefined,
   name: undefined,
-  dept_id: undefined,
-  dept_name: undefined,
   role_ids: undefined,
   role_names: undefined,
-  position_ids: undefined,
-  position_names: undefined,
   password: undefined,
   gender: undefined,
   email: undefined,
@@ -571,8 +544,6 @@ async function handleResetQuery() {
   dateRange.value = [];
   queryFormData.start_time = undefined;
   queryFormData.end_time = undefined;
-  // 清空部门并重置页码
-  queryFormData.dept_id = undefined;
   // 清空创建人
   queryFormData.creator = undefined;
   queryFormData.page_no = 1;
@@ -585,12 +556,8 @@ const initialFormData: UserForm = {
   id: undefined,
   username: undefined,
   name: undefined,
-  dept_id: undefined,
-  dept_name: undefined,
   role_ids: undefined,
   role_names: undefined,
-  position_ids: undefined,
-  position_names: undefined,
   password: undefined,
   gender: undefined,
   email: undefined,
@@ -653,8 +620,7 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
       dialogVisible.title = "修改用户";
       Object.assign(formData, response.data.data);
       // 确保角色和岗位ID正确设置
-      formData.role_ids = (response.data.data.roles || []).map(item => item.id as number);
-      formData.position_ids = (response.data.data.positions || []).map(item => item.id as number);
+  formData.role_ids = (response.data.data.roles || []).map(item => item.id as number);
     }
   } else {
     dialogVisible.title = "新增用户";
@@ -665,11 +631,6 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
   if (dataFormRef.value) {
     dataFormRef.value.clearValidate();
   }
-
-  // 获取部门树
-  const deptResponse = await DeptAPI.getDeptList(queryFormData);
-  const treeData = deptResponse.data.data;
-  deptOptions.value = formatTree(treeData);
 
   // 获取角色列表
   const roleResponse = await RoleAPI.getRoleList();
@@ -682,16 +643,7 @@ async function handleOpenDialog(type: 'create' | 'update' | 'detail', id?: numbe
     }))
     .filter(opt => !opt.disabled);
 
-  // 获取岗位列表
-  const positionResponse = await PositionAPI.getPositionList();
-  positionOptions.value = positionResponse.data.data.items
-    .filter(item => item.id !== undefined && item.name !== undefined)
-    .map(item => ({
-      value: item.id as number,
-      label: item.name as string,
-      disabled: item.status === false || String(item.status) === 'false'
-    }))
-    .filter(opt => !opt.disabled);
+  // （岗位已移除）
 }
 
 // 提交表单（防抖）

@@ -92,9 +92,7 @@ async def get_current_user(
     user = await UserCRUD(auth).get_by_username_crud(
         username=username, 
         preload=[
-            "dept", 
             selectinload(UserModel.roles).selectinload(RoleModel.creator),
-            "positions", 
             "creator"
         ]
     )
@@ -110,8 +108,6 @@ async def get_current_user(
     # 过滤可用的角色和职位
     if hasattr(user, 'roles'):
         user.roles = [role for role in user.roles if role and role.status]
-    if hasattr(user, 'positions'):
-        user.positions = [pos for pos in user.positions if pos and pos.status]
 
     auth.user = UserOutSchema.model_validate(user)
     return auth

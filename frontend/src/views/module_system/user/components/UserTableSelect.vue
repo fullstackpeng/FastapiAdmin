@@ -95,7 +95,7 @@ interface IUser {
   avatar?: string;
   email?: string | null;
   status?: boolean;
-  dept_name?: string;
+  // dept_name removed
   role_names?: string[];
   created_at?: string;
 }

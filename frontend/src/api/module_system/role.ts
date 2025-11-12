@@ -90,7 +90,6 @@ export interface RoleTable {
   data_scope?: number;
   status?: boolean;
   menus?: permissionMenuType[];
-  depts?: permissionDeptType[];
   description?: string;
   created_at?: string;
   updated_at?: string;
@@ -108,22 +107,15 @@ export interface RoleForm {
   updated_at?: string;
   creator?: creatorType;
   menus?: permissionMenuType[];
-  depts?: permissionDeptType[];
 }
 
 export interface permissionDataType {
   role_ids: RoleTable["id"][];
   menu_ids: permissionMenuType["id"][];
   data_scope: number;
-  dept_ids: permissionDeptType["id"][];
 }
 
-export interface permissionDeptType {
-  id: number;
-  name: string;
-  parent_id: number;
-  children: permissionDeptType[];
-}
+
 
 export interface permissionMenuType {
   id: number;

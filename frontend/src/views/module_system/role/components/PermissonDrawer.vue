@@ -27,33 +27,14 @@
               <el-form-item prop="data_scope">
                 <el-select v-model="permissionState.data_scope">
                   <el-option :key="1" label="仅本人数据权限" :value="1" />
-                  <el-option :key="2" label="本部门数据权限" :value="2" />
-                  <el-option :key="3" label="本部门及以下数据权限" :value="3" />
+                  <!-- 本部门/本部门及以下 数据权限选项已移除 -->
                   <el-option :key="4" label="全部数据权限" :value="4" />
                   <el-option :key="5" label="自定义数据权限" :value="5" />
                 </el-select>
                 </el-form-item>
               </el-form>
               
-              <div v-if="permissionState.data_scope === 5 && deptTreeData.length" class="mt-5 max-h-[60vh] b-1 b-solid b-[#e5e7eb] p-10px overflow-auto box-border">
-                <el-input v-model="deptFilterText" placeholder="部门名称" />
-                <el-tree 
-                  ref="deptTreeRef"
-                  node-key="value"
-                  show-checkbox
-                  :data="deptTreeData"
-                  :filter-node-method="handleFilter"
-                  default-expand-all
-                  :highlight-current="true"
-                  :check-strictly="!parentChildLinked"
-                  style="height: calc(100% - 60px); overflow-y: auto; margin-top: 10px;"
-                  @check="deptTreeCheck"
-                  >
-                  <template #empty>
-                    <el-empty :image-size="80" description="暂无数据" />
-                  </template>
-                </el-tree>
-              </div>
+              <!-- dept tree removed -->
           </div>
         </div>
       </el-aside>
@@ -146,8 +127,7 @@ const props = defineProps({
 })
 
 import { listToTree, formatTree } from "@/utils/common";
-import RoleAPI, { permissionDataType, permissionDeptType, permissionMenuType } from "@/api/module_system/role";
-import DeptAPI from "@/api/module_system/dept";
+import RoleAPI, { permissionDataType, permissionMenuType } from "@/api/module_system/role";
 import MenuAPI from "@/api/module_system/menu";
 import type { TreeInstance } from 'element-plus'
 import { useAppStore } from "@/store/modules/app.store";
@@ -159,8 +139,7 @@ const drawerSize = computed(() => (appStore.device === DeviceEnum.DESKTOP ? "800
 const emit = defineEmits(['update:modelValue', 'saved'])
 
 const permTreeRef = ref<TreeInstance>();
-const deptTreeRef = ref<TreeInstance>()
-const deptFilterText = ref("")
+// dept tree removed
 const permFilterText = ref("");
 const dataFormRef = ref();
 const drawerVisible = computed({
@@ -174,13 +153,12 @@ const drawerVisible = computed({
 const isExpanded = ref(true);
 const parentChildLinked = ref(false)
 const loading = ref<boolean>(false);
-const deptTreeData = ref<permissionDeptType[]>([]);
+// deptTreeData removed
 const menuTreeData = ref<permissionMenuType[]>([]);
 const permissionState = ref<permissionDataType>({
   role_ids: [],
   menu_ids: [],
   data_scope: 1,
-  dept_ids: []
 });
 
 // 初始化方法,用于打开抽屉并加载数据
@@ -188,9 +166,7 @@ const init = async () => {
   loading.value = true;
 
   try {
-    // 获取全部部门树
-    const deptResponse = await DeptAPI.getDeptList();
-    deptTreeData.value = formatTree(listToTree(deptResponse.data.data));
+  // dept tree removed
 
     // 获取全部菜单树
     const menuResponse = await MenuAPI.getMenuList();
@@ -204,7 +180,6 @@ const init = async () => {
       role_ids: [props.roleId],
       menu_ids: roleResponse.data.data.menus?.map(menu => menu.id) || [],
       data_scope: roleResponse.data.data.data_scope || 1,
-      dept_ids: roleResponse.data.data.depts?.map(dept => dept.id) || []
     };
 
     // 根据保存的权限数据判断是否应该开启父子联动
@@ -213,12 +188,6 @@ const init = async () => {
     // 回显菜单树选中项
     if (permTreeRef.value) {
       await permTreeRef.value.setCheckedKeys(permissionState.value.menu_ids);
-    }
-
-    // 修改：增加对 deptTreeRef.value 的存在性判断，并添加日志
-    if (permissionState.value.data_scope === 5 && deptTreeRef.value) {
-      // await 一定不能丢，否则到导致初始化时候deptTreeRef.value 为 undefined
-      await deptTreeRef.value.setCheckedKeys(permissionState.value.dept_ids);
     }
 
   } catch (error: any) {
@@ -248,7 +217,6 @@ async function handleDrawerSave () {
       role_ids: [props.roleId],
       menu_ids: (permTreeRef.value?.getCheckedKeys() || []).map(key => Number(key)),
       data_scope: permissionState.value.data_scope,
-      dept_ids: (deptTreeRef.value?.getCheckedKeys() || []).map(key => Number(key))
     };
 
     await RoleAPI.setPermission(submitData)
@@ -266,10 +234,7 @@ async function handleDrawerSave () {
   }
 }
 
-// 部门树选择回调
-const deptTreeCheck = (checkedIds: number[]) => {
-  permissionState.value.dept_ids = checkedIds;
-}
+// dept tree removed
 
 // 菜单选择变更回调
 const menuTreeCheck = (checkedIds: number[]) => {
@@ -291,9 +256,7 @@ function togglePermTree() {
 }
 
 // 部门筛选
-watch(deptFilterText, (val) => {
-  deptTreeRef.value!.filter(val);
-})
+// dept tree watchers removed
 
 // 菜单筛选
 watch(permFilterText, (val) => {

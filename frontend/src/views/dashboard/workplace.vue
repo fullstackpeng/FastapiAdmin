@@ -10,7 +10,7 @@
                 {{ timefix }}{{ currentUser.name }}，{{ welcome }}
               </div>
               <el-text>
-                {{ currentUser.username }} | {{ currentUser.dept_name }} | {{ currentUser.description }}
+                {{ currentUser.username }} | {{ currentUser.description }}
               </el-text>
             </div>
           </div>
@@ -351,7 +351,7 @@ const currentUser = {
   name: userStore.basicInfo.name || "吴彦祖",
   username: userStore.basicInfo.username || "账号信息",
   description: userStore.basicInfo.description || "用户说明",
-  dept_name: userStore.basicInfo.dept_name || "软件专业部",
+  // dept removed
   last_login: userStore.basicInfo.last_login || "2023-01-01 00:00:00",
 };
 

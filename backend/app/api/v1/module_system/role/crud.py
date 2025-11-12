@@ -7,7 +7,6 @@ from .model import RoleModel
 from .schema import RoleCreateSchema, RoleUpdateSchema
 from ..auth.schema import AuthSchema
 from ..menu.crud import MenuCRUD
-from ..dept.crud import DeptCRUD
 
 
 class RoleCRUD(CRUDBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
@@ -83,25 +82,7 @@ class RoleCRUD(CRUDBase[RoleModel, RoleCreateSchema, RoleUpdateSchema]):
         """
         await self.set(ids=role_ids, data_scope=data_scope)
 
-    async def set_role_depts_crud(self, role_ids: List[int], dept_ids: List[int]) -> None:
-        """
-        设置角色的部门权限
-        
-        参数:
-        - role_ids (List[int]): 角色ID列表
-        - dept_ids (List[int]): 部门ID列表
-        
-        返回:
-        - None
-        """
-        roles = await self.list(search={"id": ("in", role_ids)})
-        depts = await DeptCRUD(self.auth).get_list_crud(search={"id": ("in", dept_ids)})
-
-        for obj in roles:
-            relationship = obj.depts
-            relationship.clear()
-            relationship.extend(depts)
-        await self.db.flush()
+    # set_role_depts_crud removed
 
     async def set_available_crud(self, ids: List[int], status: bool) -> None:
         """

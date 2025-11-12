@@ -12,10 +12,8 @@ from app.core.logger import logger
 from app.utils.common_util import traversal_to_tree
 from app.utils.excel_util import ExcelUtil
 from app.utils.upload_util import UploadUtil
-from ..position.crud import PositionCRUD
 from ..role.crud import RoleCRUD
 from ..menu.crud import MenuCRUD
-from ..dept.crud import DeptCRUD
 from ..auth.schema import AuthSchema
 from ..menu.schema import MenuOutSchema
 from .param import UserQueryParam
@@ -51,14 +49,7 @@ class UserService:
         if not user:
             raise CustomException(msg="用户不存在")
         
-        # 如果用户绑定了部门,则获取部门名称
-        if user.dept_id:
-            dept = await DeptCRUD(auth).get_by_id_crud(id=user.dept_id)
-            UserOutSchema.dept_name = dept.name if dept else None
-        else:
-            UserOutSchema.dept_name = None
-            
-            
+        # dept info removed
         return UserOutSchema.model_validate(user).model_dump()
 
     @classmethod
@@ -104,23 +95,17 @@ class UserService:
         if user:
             raise CustomException(msg='已存在相同用户名称的账号')
 
-        # 检查部门是否存在
-        if data.dept_id:
-            dept = await DeptCRUD(auth).get_by_id_crud(id=data.dept_id)
-            if not dept:
-                raise CustomException(msg='部门不存在')
+        # dept handling removed
 
         # 创建用户
         if data.password:
             data.password = PwdUtil.set_password_hash(password=data.password)
-        user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
+        user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids"})
         new_user = await UserCRUD(auth).create(data=user_dict)
 
-        # 设置角色和岗位
+        # 设置角色
         if data.role_ids and len(data.role_ids) > 0:
             await UserCRUD(auth).set_user_roles_crud(user_ids=[new_user.id], role_ids=data.role_ids)
-        if data.position_ids and len(data.position_ids) > 0:
-            await UserCRUD(auth).set_user_positions_crud(user_ids=[new_user.id], position_ids=data.position_ids)
 
         new_user_dict = UserOutSchema.model_validate(new_user).model_dump()
         return new_user_dict
@@ -166,14 +151,7 @@ class UserService:
             exist_email_user = await UserCRUD(auth).get(email=data.email)
             if exist_email_user and exist_email_user.id != id:
                 raise CustomException(msg='更新失败，邮箱已存在')
-        # 检查部门是否存在且可用
-
-        if data.dept_id:
-            dept = await DeptCRUD(auth).get_by_id_crud(id=data.dept_id)
-            if not dept:
-                raise CustomException(msg='部门不存在')
-            if not dept.status:
-                raise CustomException(msg='部门已被禁用')
+        # dept checks removed
 
         # 更新密码
         if data.password:
@@ -182,7 +160,7 @@ class UserService:
         # 更新用户
         # user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
         # new_user = await UserCRUD(auth).update(id=id, data=user_dict)
-        user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids", "last_login", "password"})
+        user_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "last_login", "password"})
         new_user = await UserCRUD(auth).update(id=id, data=user_dict)
 
         # 更新角色和岗位
@@ -195,14 +173,7 @@ class UserService:
                 raise CustomException(msg='部分角色已被禁用')
             await UserCRUD(auth).set_user_roles_crud(user_ids=[id], role_ids=data.role_ids)
 
-        if data.position_ids and len(data.position_ids) > 0:
-            # 检查岗位是否都存在且可用
-            positions = await PositionCRUD(auth).get_list_crud(search={"id": ("in", data.position_ids)})
-            if len(positions) != len(data.position_ids):
-                raise CustomException(msg='部分岗位不存在')
-            if not all(position.status for position in positions):
-                raise CustomException(msg='部分岗位已被禁用')
-            await UserCRUD(auth).set_user_positions_crud(user_ids=[id], position_ids=data.position_ids)
+        # position handling removed
 
         user_dict = UserOutSchema.model_validate(new_user).model_dump()
         return user_dict
@@ -233,10 +204,9 @@ class UserService:
                 raise CustomException(msg="不能删除当前登陆用户")
         # 删除用户角色关联数据
         await UserCRUD(auth).set_user_roles_crud(user_ids=ids, role_ids=[])
-        
-        # 删除用户岗位关联数据
-        await UserCRUD(auth).set_user_positions_crud(user_ids=ids, position_ids=[])
-        
+
+        # 删除用户岗位关联数据 (removed)
+
         # 删除用户
         await UserCRUD(auth).delete(ids=ids)
 
@@ -255,10 +225,7 @@ class UserService:
         if not auth.user or not auth.user.id:
             raise CustomException(msg="用户不存在")
         user = await UserCRUD(auth).get_by_id_crud(id=auth.user.id)
-        # 获取部门名称
-        if user and user.dept_id:
-            dept = await DeptCRUD(auth).get_by_id_crud(id=user.dept_id)
-            UserOutSchema.dept_name = dept.name if dept else None
+        # dept info removed
         user_dict = UserOutSchema.model_validate(user).model_dump()
 
         # 获取菜单权限
@@ -437,7 +404,7 @@ class UserService:
 
         data.password = PwdUtil.set_password_hash(password=data.password)
         data.name = data.username
-        create_dict = data.model_dump(exclude_unset=True, exclude={"role_ids", "position_ids"})
+        create_dict = data.model_dump(exclude_unset=True, exclude={"role_ids"})
         result = await UserCRUD(auth).create(data=create_dict)
         if data.role_ids:
             await UserCRUD(auth).set_user_roles_crud(user_ids=[result.id], role_ids=data.role_ids)
@@ -484,7 +451,6 @@ class UserService:
         """
         
         header_dict = {
-            '部门编号': 'dept_id',
             '用户名': 'username',
             '名称': 'name',
             '邮箱': 'email',
@@ -511,7 +477,7 @@ class UserService:
             df.rename(columns=header_dict, inplace=True)
             
             # 验证必填字段
-            required_fields = ['username', 'name', 'dept_id']
+            required_fields = ['username', 'name']
             for field in required_fields:
                 missing_rows = df[df[field].isnull()].index.tolist()
                 raise CustomException(msg=f"{[k for k,v in header_dict.items() if v == field][0]}不能为空，第{[i+1 for i in missing_rows]}行")
@@ -536,7 +502,6 @@ class UserService:
                         "mobile": str(row['mobile']).strip(),
                         "gender": gender,
                         "status": status,
-                        "dept_id": int(row['dept_id']),
                         "password": PwdUtil.set_password_hash(password="123456")  # 设置默认密码
                     }
 
@@ -580,7 +545,7 @@ class UserService:
         返回:
         - bytes: Excel文件字节流
         """
-        header_list = ['部门编号', '用户名', '名称', '邮箱', '手机号', '性别', '状态']
+        header_list = ['用户名', '名称', '邮箱', '手机号', '性别', '状态']
         selector_header_list = ['性别', '状态'] 
         option_list = [{'性别': ['男', '女', '未知']}, {'状态': ['正常', '停用']}]
         return ExcelUtil.get_excel_template(
@@ -609,7 +574,7 @@ class UserService:
             'avatar': '头像',
             'username': '用户名称',
             'name': '用户昵称', 
-            'dept_name': '部门',
+            # dept_name removed
             'email': '邮箱',
             'mobile': '手机号',
             'gender': '性别',

@@ -67,28 +67,7 @@
               </template>
               <span >{{ infoFormState.username }}</span>
             </el-descriptions-item>
-            <el-descriptions-item>
-              <template #label>
-                <div class="cell-item"> 
-                  <el-icon :style="iconStyle">
-                    <Coordinate />
-                  </el-icon>
-                  <span >部门</span>
-                </div>
-              </template>
-              <span >{{ infoFormState.dept?.name }}</span>
-            </el-descriptions-item>
-            <el-descriptions-item>
-              <template #label>
-                <div class="cell-item"> 
-                  <el-icon :style="iconStyle">
-                    <OfficeBuilding />
-                  </el-icon>
-                  <span >岗位</span>
-                </div>
-              </template>
-              <span >{{infoFormState.positions?.map(item => item.name).join('、')}}</span>
-            </el-descriptions-item>
+            <!-- 部门和岗位信息已移除 -->
             <el-descriptions-item>
               <template #label>
                 <div class="cell-item"> 
@@ -263,9 +242,7 @@ const infoFormState = reactive<InfoFormState>({
   mobile: undefined,
   email: undefined,
   username: undefined,
-  dept_name: undefined,
-  dept: {},
-  positions: [],
+  // dept/positions removed
   roles: [],
   avatar: undefined,
   created_at: undefined
